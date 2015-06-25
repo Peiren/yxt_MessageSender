@@ -36,7 +36,7 @@ public class MessageSender {
 	private final static String SEND_MESSAGE_ENTITY = "studentCode={0}&messageType=2&sign=0&presetsign=班主任&signature={1}老师&scheduled=0&fixTime=&smsReceipt=0&content={2}";
 	
 	private final static String MESSAGE_CONTENT = "夏至到，温升高，绿豆粥，解暑妙，冰西瓜，降温好，吃苦瓜，可降火，白开水，要多喝，晚睡觉，盖好被，空调温，莫太低，夏至了，送祝福，盼望你，快乐伴，健康随，清清爽爽过一夏！夏至快乐！";
-	private final static int MESSAGE_COUNT = 5;
+	private final static int MESSAGE_COUNT = 270;
 	
 	private CloseableHttpClient httpClient;
 	private CookieStore cookieStore;
@@ -121,10 +121,11 @@ public class MessageSender {
 			StringEntity payload = new StringEntity( basicPayloaod+i ,ContentType.create("text/plain", "UTF-8"));
 			postRequest.setEntity(payload);
 			try {
+				Thread.sleep(2500);
 				response = httpClient.execute(postRequest);
 				showHttpMessage(postRequest);
 				showHttpMessage(response);
-			} catch (IOException e) {
+			} catch (IOException | InterruptedException e) {
 				// TODO Auto-generated catch block
 				e.printStackTrace();
 			}
