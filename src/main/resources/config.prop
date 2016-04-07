@@ -1,0 +1,7 @@
+login_path=http://www.youxuetong.com/main/doUserLogin.do
+credential=loginName={0}&sysId=6&loginPwd={1}
+role_path=http://www.youxuetong.com/roles/saverolesmes.do
+role_query=accountid={0}&type=1&userid={1}&toflag=2
+send_path=http://www.youxuetong.com/sendMsg/sendToGroup.do
+send_payload=studentCode={0}&messageType=2&sign=0&presetsign=班主任&signature={1}老师&scheduled=0&fixTime=&smsReceipt=0&content={2}
+message_content=暑期快乐，注意防暑降温，多吃瓜果蔬菜。
