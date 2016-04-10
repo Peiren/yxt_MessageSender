@@ -29,9 +29,16 @@ public class MessageRecorder implements MethodInterceptor {
 		
 		CloseableHttpResponse response  = (CloseableHttpResponse)invocation.proceed();
 		
+		System.out.println("-----------------------------------------------------------------");
+		System.out.println(response.getStatusLine());
+		for (Header header : response.getAllHeaders()) {
+			System.out.println(header.getName() + ":" + header.getValue());
+		}
+		System.out.println();
 		String temp = EntityUtils.toString(response.getEntity(), "gb2312");
 		System.out.println(temp);
 		response.setEntity(new StringEntity(temp, "gb2312"));
+		
 		return response;
 	}
 

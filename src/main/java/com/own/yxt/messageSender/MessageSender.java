@@ -5,10 +5,10 @@ import java.net.URI;
 import java.net.URISyntaxException;
 import java.text.MessageFormat;
 
+import javax.annotation.Resource;
+
 import net.sf.json.JSONObject;
 
-import org.apache.http.HttpMessage;
-import org.apache.http.ParseException;
 import org.apache.http.client.CookieStore;
 import org.apache.http.client.methods.CloseableHttpResponse;
 import org.apache.http.client.methods.HttpGet;
@@ -16,9 +16,8 @@ import org.apache.http.client.methods.HttpPost;
 import org.apache.http.client.utils.URIBuilder;
 import org.apache.http.entity.ContentType;
 import org.apache.http.entity.StringEntity;
-import org.apache.http.impl.client.BasicCookieStore;
 import org.apache.http.impl.client.CloseableHttpClient;
-import org.apache.http.impl.client.HttpClients;
+import org.apache.http.util.EntityUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -28,17 +27,15 @@ public class MessageSender {
 	@Autowired
 	private Config config;
 	
+	@Resource(name="httpClient")
 	private CloseableHttpClient httpClient;
+	
+	@Autowired
 	private CookieStore cookieStore;
+	
 	private HttpPost postRequest;
 	private HttpGet getRequest;
-	private CloseableHttpResponse response;
-	private String resPayload;
-
-	public MessageSender(){
-		cookieStore = new BasicCookieStore();
-		httpClient = HttpClients.custom().setDefaultCookieStore(cookieStore).build();
-	}
+	private CloseableHttpResponse response;	
 	
 	public void sendForUser(JSONObject userInfo){
 
@@ -60,7 +57,7 @@ public class MessageSender {
 		}
 	}
 	
-	private JSONObject loginYxt(String loginName, String loginPwd) throws URISyntaxException{
+	private JSONObject loginYxt(String loginName, String loginPwd) throws URISyntaxException {
 		postRequest = new HttpPost(config.getLoginPath());
 		postRequest.addHeader("Host", "www.youxuetong.com");
 		postRequest.addHeader("Connection", "keep-alive");
@@ -74,7 +71,7 @@ public class MessageSender {
 		
 		try {
 			response = httpClient.execute(postRequest);
-			return JSONObject.fromObject(resPayload).getJSONObject("userobj");
+			return JSONObject.fromObject(EntityUtils.toString(response.getEntity())).getJSONObject("userobj");
 		} catch (IOException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
@@ -82,7 +79,7 @@ public class MessageSender {
 		return null;
 	}
 	
-	private void saveRole(String userId, String accountId) throws URISyntaxException{
+	private void saveRole(String userId, String accountId) throws URISyntaxException {
 		URI saveRoleuri = new URIBuilder(config.getRolePath()).setCustomQuery(MessageFormat.format(config.getRoleQuery(), accountId, userId)).build();
 		getRequest = new HttpGet(saveRoleuri);
 		try {
@@ -94,7 +91,7 @@ public class MessageSender {
 		}
 	}
 	
-	private void sendMessage(String studentCode, String signature,int messageCount) throws URISyntaxException{
+	private void sendMessage(String studentCode, String signature,int messageCount) throws URISyntaxException {
 		URI sendMessageURI = new URIBuilder(config.getSendPath()).build();
 		postRequest.setURI(sendMessageURI);
 		String basicPayloaod = MessageFormat.format(config.getSendPayload(), studentCode, signature, config.getMessageContent());

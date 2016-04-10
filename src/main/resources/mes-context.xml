@@ -12,9 +12,18 @@
 	<context:component-scan base-package="com.own.yxt.messageSender"></context:component-scan>
 	
 	
+	<bean id="cookieStore" class="org.apache.http.impl.client.BasicCookieStore"/>
+	
 	<bean id="httpClient" class="org.springframework.aop.framework.ProxyFactoryBean">
-		<property name="taget">
-			<bean ></bean>
+		<property name="target">
+			<bean class="com.own.yxt.messageSender.HttpCleintFactory" factory-method="getClient">
+					<constructor-arg>
+						<ref bean="cookieStore"/>
+					</constructor-arg>
+			</bean>
+		</property>
+		<property name="proxyTargetClass">
+			<value>true</value>
 		</property>
 		<property name="interceptorNames">
 			<list>
@@ -23,9 +32,9 @@
 		</property>
 	</bean>
 	
-	<bean id="messageRecorder" class="org.springframework.aop.support.NameMatchMethodAdvisor">
+	<bean id="messageRecorder" class="org.springframework.aop.support.NameMatchMethodPointcutAdvisor">
 		<property name="advice">
-			<bean class="com.own.yxt.messageSender.MessageRecoreder"/>
+			<bean class="com.own.yxt.messageSender.MessageRecorder"/>
 		</property>
 		<property name="mappedName">
 			<value>execute</value>
