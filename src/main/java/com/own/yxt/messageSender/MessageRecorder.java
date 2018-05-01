@@ -15,7 +15,7 @@ public class MessageRecorder implements MethodInterceptor {
 	@Override
 	public Object invoke(MethodInvocation invocation) throws Throwable {
 		HttpRequest reqeust = (HttpRequest)invocation.getArguments()[0];
-		
+
 		System.out.println(reqeust.getRequestLine());
 		for(Header header : reqeust.getAllHeaders()){
 			System.out.println(header.getName()+": "+header.getValue());

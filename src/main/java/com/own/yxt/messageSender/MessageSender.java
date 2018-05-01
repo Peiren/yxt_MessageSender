@@ -17,7 +17,7 @@ import org.apache.http.client.utils.URIBuilder;
 import org.apache.http.entity.ContentType;
 import org.apache.http.entity.StringEntity;
 import org.apache.http.impl.client.CloseableHttpClient;
-import org.apache.http.util.EntityUtils;
+import org.apache.http.impl.cookie.BasicClientCookie;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -32,19 +32,37 @@ public class MessageSender {
 	
 	@Autowired
 	private CookieStore cookieStore;
-	
-	private HttpPost postRequest;
+
 	private HttpGet getRequest;
-	private CloseableHttpResponse response;	
+	private HttpPost postRequest;
+	private CloseableHttpResponse response;
+
+	private void initPostReq() {
+		postRequest = new HttpPost();
+		postRequest.addHeader("Host", "www.youxuetong.com");
+		postRequest.addHeader("Connection", "keep-alive");
+		postRequest.addHeader("Accept", "text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8");
+		postRequest.addHeader("Accept-Encoding", "gzip, deflate");
+		postRequest.addHeader("Accept-Language", "en");
+		postRequest.addHeader("Content-Type"," application/x-www-form-urlencoded; charset=UTF-8");
+	}
 	
 	public void sendForUser(JSONObject userInfo){
+		if (postRequest == null) {
+			initPostReq();
+		}
+		BasicClientCookie accountid = new BasicClientCookie("accountid", userInfo.getString("accountid"));
+		accountid.setDomain("www.youxuetong.com"); accountid.setPath("/");
+		BasicClientCookie usertype = new BasicClientCookie("usertype", userInfo.getString("usertype"));
+		usertype.setDomain("www.youxuetong.com");usertype.setPath("/");
+		BasicClientCookie usercode = new BasicClientCookie("usercode", userInfo.getString("usercode"));
+		usercode.setDomain("www.youxuetong.com");usercode.setPath("/");
+		cookieStore.addCookie(accountid);
+		cookieStore.addCookie(usertype);
+		cookieStore.addCookie(usercode);
 
 		try{
-			JSONObject user = loginYxt(userInfo.getString("loginName"), userInfo.getString("loginPwd"));
-			if(user != null){
-				saveRole(user.getString("userid"),user.getString("accountid"));
-				sendMessage(userInfo.getString("studentCode"),userInfo.getString("userName"),userInfo.getInt("messageCount"));
-			}
+			sendMessage(userInfo.getString("studentCode"),userInfo.getString("userName"),userInfo.getInt("messageCount"));
 		} catch (URISyntaxException e) {
 			e.printStackTrace();
 		} finally{
@@ -54,40 +72,6 @@ public class MessageSender {
 				e.printStackTrace();
 			}
 			cookieStore.clear();
-		}
-	}
-	
-	private JSONObject loginYxt(String loginName, String loginPwd) throws URISyntaxException {
-		postRequest = new HttpPost(config.getLoginPath());
-		postRequest.addHeader("Host", "www.youxuetong.com");
-		postRequest.addHeader("Connection", "keep-alive");
-		postRequest.addHeader("Accept", "text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8");
-		postRequest.addHeader("Accept-Encoding", "gzip, deflate");
-		postRequest.addHeader("Accept-Language", "en");
-		postRequest.addHeader("Content-Type"," application/x-www-form-urlencoded; charset=UTF-8");
-		String payload = MessageFormat.format(config.getCredential(), loginName, loginPwd);
-		StringEntity entity = new StringEntity(payload, ContentType.create("text/plain", "UTF-8"));
-		postRequest.setEntity(entity);
-		
-		try {
-			response = httpClient.execute(postRequest);
-			return JSONObject.fromObject(EntityUtils.toString(response.getEntity())).getJSONObject("userobj");
-		} catch (IOException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
-		return null;
-	}
-	
-	private void saveRole(String userId, String accountId) throws URISyntaxException {
-		URI saveRoleuri = new URIBuilder(config.getRolePath()).setCustomQuery(MessageFormat.format(config.getRoleQuery(), accountId, userId)).build();
-		getRequest = new HttpGet(saveRoleuri);
-		try {
-			response = httpClient.execute(getRequest);
-			
-		} catch (IOException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
 		}
 	}
 	
